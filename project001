@@ -1,0 +1,26 @@
+library("dplyr")
+library("tidytext")
+library("wordcloud")
+library("stringr")
+library("SnowballC")
+install.packages("stopwords")
+
+dados_kant <- read.csv("kant2.csv")
+
+dados_kant2 <- as_tibble(dados_kant)
+
+Encoding(dados_kant2$texto.do.kant) <- "ASCII"
+
+for (i in 1:nrow(dados_kant2))
+{
+  dados_kant2$texto.do.kant[i] <- iconv(dados_kant2$texto.do.kant[i], to = "ASCII//TRANSLIT")
+}
+
+kant_palavras <- dados_kant2 %>%  unnest_tokens(word, texto.do.kant)
+
+kant_palavras <- kant_palavras %>% anti_join(get_stopwords(language = 'pt'))
+
+kant_contagem <- kant_palavras %>% select(word) %>% count(word, sort = TRUE)
+
+pal <- brewer.pal(8,"Dark2")
+kant_contagem %>% with(wordcloud(word, n, random.order = FALSE, max.words = 50, colors=pal))
